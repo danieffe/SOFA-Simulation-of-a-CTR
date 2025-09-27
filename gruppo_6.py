@@ -17,10 +17,21 @@ Radius_curvature_3 = 135
 
 def createScene(rootNode):
 
-    rootNode.addObject('RequiredPlugin', pluginName='BeamAdapter Sofa.Component.Constraint.Projective Sofa.Component.LinearSolver.Direct Sofa.Component.ODESolver.Backward Sofa.Component.StateContainer Sofa.Component.Topology.Container.Constant Sofa.Component.Topology.Container.Grid Sofa.Component.Visual Sofa.Component.Mapping.Linear Sofa.Component.Topology.Container.Dynamic Sofa.GL.Component.Rendering3D')
-    rootNode.addObject('VisualStyle', displayFlags='showBehaviorModels showCollisionModels hideBoundingCollisionModels showForceFields')
-    rootNode.addObject('DefaultAnimationLoop')
+    rootNode.addObject('RequiredPlugin', pluginName='Sofa.Component.AnimationLoop Sofa.Component.SolidMechanics.Spring MultiThreading Sofa.Component.Topology.Mapping Sofa.Component.Constraint.Lagrangian.Solver Sofa.Component.Constraint.Lagrangian.Correction Sofa.Component.Collision.Response.Contact Sofa.Component.Collision.Geometry Sofa.Component.Collision.Detection.Intersection Sofa.Component.Collision.Detection.Algorithm BeamAdapter Sofa.Component.Constraint.Projective Sofa.Component.LinearSolver.Direct Sofa.Component.ODESolver.Backward Sofa.Component.StateContainer Sofa.Component.Topology.Container.Constant Sofa.Component.Topology.Container.Grid Sofa.Component.Visual Sofa.Component.Mapping.Linear Sofa.Component.Topology.Container.Dynamic Sofa.GL.Component.Rendering3D')
+    rootNode.addObject('VisualStyle', displayFlags='showVisualModels hideBehaviorModels showCollisionModels hideBoundingCollisionModels showForceFields')
+    rootNode.addObject('FreeMotionAnimationLoop')
     rootNode.addObject('DefaultVisualManagerLoop')
+    rootNode.gravity = [0, 0, 0]
+    rootNode.dt = 0.05
+
+    #collision pipeline
+
+    solver = rootNode.addObject('GenericConstraintSolver', name='solver', computeConstraintForces="1", tolerance='1e-6', maxIterations='1000')
+    rootNode.addObject('CollisionPipeline', verbose='0')
+    rootNode.addObject('ParallelBruteForceBroadPhase')
+    rootNode.addObject('ParallelBVHNarrowPhase')
+    rootNode.addObject('CollisionResponse', name='response', response='FrictionContactConstraint')
+    rootNode.addObject('LocalMinDistance', name='proximity', alarmDistance='2', contactDistance='0.5', angleCone='0.0')
 
     # TUBO 1
 
@@ -28,9 +39,9 @@ def createScene(rootNode):
 
     #sezioni e unione
 
-    TUBE_1.addObject('RodStraightSection', name='Straight_section', length = Straight_length_1, radius = Tube_radius_1, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_1.addObject('RodSpireSection', name='Curved_section', length = Curved_length_1, spireDiameter = 2*Radius_curvature_1, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_1.addObject('WireRestShape', template='Rigid3d', name='RestShape_1', wireMaterials='@Straight_section @Curved_section')
+    TUBE_1.addObject('RodStraightSection', name='StraightSection', length = Straight_length_1, radius = Tube_radius_1, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_1.addObject('RodSpireSection', name='SpireSection', length = Curved_length_1, spireDiameter = 2*Radius_curvature_1, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_1.addObject('WireRestShape', template='Rigid3d', name='RestShape_1', wireMaterials='@StraightSection @SpireSection')
 
     #proprieta meccaniche
 
@@ -45,9 +56,9 @@ def createScene(rootNode):
 
     #sezioni e unione
 
-    TUBE_2.addObject('RodStraightSection', name='Straight_section', length = Straight_length_2, radius = Tube_radius_2, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_2.addObject('RodSpireSection', name='Curved_section', length = Curved_length_2, spireDiameter = 2*Radius_curvature_2, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_2.addObject('WireRestShape', template='Rigid3d', name='RestShape_2', wireMaterials='@Straight_section @Curved_section')
+    TUBE_2.addObject('RodStraightSection', name='StraightSection', length = Straight_length_2, radius = Tube_radius_2, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_2.addObject('RodSpireSection', name='SpireSection', length = Curved_length_2, spireDiameter = 2*Radius_curvature_2, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_2.addObject('WireRestShape', template='Rigid3d', name='RestShape_2', wireMaterials='@StraightSection @SpireSection')
 
     #proprieta meccaniche
 
@@ -62,9 +73,9 @@ def createScene(rootNode):
 
     #sezioni e unione
 
-    TUBE_3.addObject('RodStraightSection', name='Straight_section', length = Straight_length_3, radius = Tube_radius_3, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_3.addObject('RodSpireSection', name='Curved_section', length = Curved_length_3, spireDiameter = 2*Radius_curvature_3, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_3.addObject('WireRestShape', template='Rigid3d', name='RestShape_3', wireMaterials='@Straight_section @Curved_section')
+    TUBE_3.addObject('RodStraightSection', name='StraightSection', length = Straight_length_3, radius = Tube_radius_3, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_3.addObject('RodSpireSection', name='SpireSection', length = Curved_length_3, spireDiameter = 2*Radius_curvature_3, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_3.addObject('WireRestShape', template='Rigid3d', name='RestShape_3', wireMaterials='@StraightSection @SpireSection')
 
     #proprieta meccaniche
 
@@ -75,23 +86,31 @@ def createScene(rootNode):
 
     #strumento complessivo
 
-    CTR = rootNode.addChild('InstrumentCombined')
+    CTR = rootNode.addChild('CTR')
     CTR.addObject('EulerImplicitSolver', rayleighStiffness='0.2', rayleighMass='0.1', printLog='false')
     CTR.addObject('BTDLinearSolver')
     CTR.addObject('RegularGridTopology', name='meshLinesCombined', nx='181', ny='1', nz='1', xmin='0.0', xmax='1.0', ymin='0', ymax='0', zmin='1', zmax='1')
     CTR.addObject('MechanicalObject', template='Rigid3d', name='DOFs', showIndices='0', ry='-90')
-    CTR.addObject('WireBeamInterpolation', name="Interpol_1", WireRestShape='@../RestShape_1')
-   # CTR.addObject('AdaptiveBeamForceFieldAndMass', name="Tube1ForceField", interpolation="@InterpolTube1")
-    CTR.addObject('WireBeamInterpolation', name="Interpol_2", WireRestShape='@../RestShape_2')
-   # CTR.addObject('AdaptiveBeamForceFieldAndMass', name="Tube2ForceField", interpolation="@InterpolTube2")
-    CTR.addObject('WireBeamInterpolation', name="Interpol_3", WireRestShape='@../RestShape_3')
-   # CTR.addObject('AdaptiveBeamForceFieldAndMass', name="Tube3ForceField", interpolation="@InterpolTube3")
+    CTR.addObject('WireBeamInterpolation', name='Interpol_1', WireRestShape='@../TUBE_1/RestShape_1')
+    CTR.addObject('AdaptiveBeamForceFieldAndMass', name='Tube1ForceField', interpolation='@Interpol_1')
+    CTR.addObject('WireBeamInterpolation', name='Interpol_2', WireRestShape='@../TUBE_2/RestShape_2')
+    CTR.addObject('AdaptiveBeamForceFieldAndMass', name='Tube2ForceField', interpolation='@Interpol_2')
+    CTR.addObject('WireBeamInterpolation', name='Interpol_3', WireRestShape='@../TUBE_3/RestShape_3')
+    CTR.addObject('AdaptiveBeamForceFieldAndMass', name='Tube3ForceField', interpolation='@Interpol_3')
+    CTR.addObject('InterventionalRadiologyController', template="Rigid3d", name="IRController", instruments="Interpol_1 Interpol_2 Interpol_3", xtip="1 0 0", step="3", rotationInstrument="0 0 0", controlledInstrument="0", startingPos="-35 58 0 0 -0.7071068 0 0.7071068")
+    CTR.addObject('RestShapeSpringsForceField', points="@IRController.indexFirstNode", stiffness="1e8", angularStiffness="1e8")
     CTR.addObject('FixedProjectiveConstraint', name='FixedConstraint', indices='0')
     CTR.addObject('LinearSolverConstraintCorrection', wire_optimization='true')
 
     #collisioni del CTR
 
-    
+    collis = CTR.addChild('Collis')
+    collis.addObject('EdgeSetTopologyContainer', name='collisEdgeSet')
+    collis.addObject('EdgeSetTopologyModifier', name='colliseEdgeModifier')
+    collis.addObject('MechanicalObject', name='MechanicalObject', template='Vec3d')
+    #collis.addObject('MultiAdaptiveBeamMapping', controller='../IRController')
+    collis.addObject('LineCollisionModel')
+    collis.addObject('PointCollisionModel')
 
     #proprieta visuali 1
 
@@ -100,10 +119,37 @@ def createScene(rootNode):
     visu_1.addObject('QuadSetTopologyContainer', name='Container_1')
     visu_1.addObject('QuadSetTopologyModifier', name='Modifier')
     visu_1.addObject('QuadSetGeometryAlgorithms', name='GeomAlgo', template='Vec3d')
-    visu_1.addObject('Edge2QuadTopologicalMapping', nbPointsOnEachCircle='10', radius='2', input='@../meshLinesCath', output='@ContainerCath', flipNormals='true')
+    visu_1.addObject('Edge2QuadTopologicalMapping', nbPointsOnEachCircle='10', radius='2', input='@../../TUBE_1/meshLines_1', output='@Container_1', flipNormals='true')
     visu_1.addObject('AdaptiveBeamMapping',  name='VisuMap_1', useCurvAbs='1', printLog='0', interpolation='@../Interpol_1', input='@../DOFs', output='@Quads')
-    visu_1.addObject('OglModel', name='Visual', color='1 0 0 1', quads="@../Container_1.quads")
-    visu_1.addObject('IdentityMapping', name='VisuMap_1', useCurvAbs="1", interpolation="@../Interpol_1", input="@../DOFs", output="@Quads")
+    visuOgl_1 = visu_1.addChild('visuOgl_1', activated='true')
+    visuOgl_1.addObject('OglModel', name='Visual', color='1 0 0 1', quads="@../Container_1.quads")
+    visuOgl_1.addObject('IdentityMapping', input="@../Quads", output="@Visual")
+
+    #proprieta visuali 2
+
+    visu_2 = CTR.addChild('visu_2', activated='true')
+    visu_2.addObject('MechanicalObject', name='Quads')
+    visu_2.addObject('QuadSetTopologyContainer', name='Container_2')
+    visu_2.addObject('QuadSetTopologyModifier', name='Modifier')
+    visu_2.addObject('QuadSetGeometryAlgorithms', name='GeomAlgo', template='Vec3d')
+    visu_2.addObject('Edge2QuadTopologicalMapping', nbPointsOnEachCircle='10', radius='1.5', input='@../../TUBE_2/meshLines_2', output='@Container_2', flipNormals='true')
+    visu_2.addObject('AdaptiveBeamMapping',  name='VisuMap_2', useCurvAbs='1', printLog='0', interpolation='@../Interpol_2', input='@../DOFs', output='@Quads')
+    visuOgl_2 = visu_2.addChild('visuOgl_2', activated='true')
+    visuOgl_2.addObject('OglModel', name='Visual', color='0 1 0 1', quads="@../Container_2.quads")
+    visuOgl_2.addObject('IdentityMapping', input="@../Quads", output="@Visual")
+
+    #proprieta visuali 3
+
+    visu_3 = CTR.addChild('visu_3', activated='true')
+    visu_3.addObject('MechanicalObject', name='Quads')
+    visu_3.addObject('QuadSetTopologyContainer', name='Container_3')
+    visu_3.addObject('QuadSetTopologyModifier', name='Modifier')
+    visu_3.addObject('QuadSetGeometryAlgorithms', name='GeomAlgo', template='Vec3d')
+    visu_3.addObject('Edge2QuadTopologicalMapping', nbPointsOnEachCircle='10', radius='1', input='@../../TUBE_3/meshLines_3', output='@Container_3', flipNormals='true')
+    visu_3.addObject('AdaptiveBeamMapping',  name='VisuMap_3', useCurvAbs='1', printLog='0', interpolation='@../Interpol_3', input='@../DOFs', output='@Quads')
+    visuOgl_3 = visu_3.addChild('visuOgl_3', activated='true')
+    visuOgl_3.addObject('OglModel', name='Visual', color='0 0 1 1', quads="@../Container_3.quads")
+    visuOgl_3.addObject('IdentityMapping', input="@../Quads", output="@Visual")
 
 
 
