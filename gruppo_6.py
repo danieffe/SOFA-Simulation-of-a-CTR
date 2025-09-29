@@ -1,5 +1,6 @@
 import sys
 import Sofa
+import Sofa.Core
 
 #definizione costanti
 Straight_length_1 = 115
@@ -14,6 +15,67 @@ Tube_radius_3 = 0.7
 Radius_curvature_1 = 105
 Radius_curvature_2 = 115
 Radius_curvature_3 = 135
+
+class KeyBoardController(Sofa.Core.Controller):
+    def __init__(self, *args, **kwargs):
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+
+        self.name = 'KeyBoardController'
+        self.ir_controller = kwargs.get('irController')
+        self.rootNode = kwargs.get('rootNode')
+        self.tube = 1    # ( 1 = TUBE_1, 2 = TUBE_2, 3 = TUBE_3 )
+        self.action = 'k' 
+
+        #definizione del csv
+
+        #
+
+        #fine csv
+
+        print("BENVENUTO")
+        print("Selezionare il tubo da controllare (Ctrl + 1/2/3)")
+        print("Successivamente selezionare il tipo di moto: traslazione in avanti o indietro (Ctrl + k/j) - rotazione in verso orario o antiorario (Ctrl + m/n)")
+
+    def onKeypressedEvent(self, c):
+        key = c['key']
+        if key == "1":
+            print("Selezionato il tubo 1")
+            self.tube = 1
+            self.ir_controller.controlledInstrument.value = self.tube -1
+        elif key == "2":
+            print("Selezionato il tubo 2")
+            self.tube = 2
+            self.ir_controller.controlledInstrument.value = self.tube -1
+        elif key == "3":
+            print("Selezionato il tubo 3")
+            self.tube = 3
+            self.ir_controller.controlledInstrument.value = self.tube -1
+        elif key == "J":
+            print("Scelta traslazione all'indietro")
+            self.action = 'j'
+            self.translate(self.tube, -1.0)
+        elif key == "K":
+            print("Scelta traslazione in avanti")
+            self.action = 'k'
+            self.translate(self.tube, 1.0)
+        elif key == "M":
+            print("Scelta rotazione oraria")
+            self.action = 'm'
+            self.rotate(self.tube, -1.0)
+        elif key == "N":
+            print("Scelta rotazione antioraria")
+            self.action = 'n'
+            self.rotate(self.tube, 1.0)
+
+    #IMPLEMENTAZIONE CONTROLLO VERO E PROPRIO
+
+    def translate(self, tube, quantity):
+        with self.ir_controller.xtip.writeable() as d: d[tube-1] = d[tube-1] + quantity
+    def rotate(self, tube, quantity):
+        with self.ir_controller.rotationInstrument.writeable() as d: d[tube-1] = d[tub-1]+ quantity
+
+
+
 
 def createScene(rootNode):
 
@@ -151,11 +213,16 @@ def createScene(rootNode):
     visuOgl_3.addObject('OglModel', name='Visual', color='0 0 1 1', quads="@../Container_3.quads")
     visuOgl_3.addObject('IdentityMapping', input="@../Quads", output="@Visual")
 
+    # aggiunta controllore alla scena
+
+    rootNode.addObject(KeyBoardController(
+        name="KeyBoardController",
+        irController=CTR.getObject("IRController"),
+        rootNode=rootNode
+    ))
 
 
-
-
-    return 0;
+    return rootNode;
 
 
 def main():
