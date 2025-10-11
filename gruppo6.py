@@ -4,6 +4,7 @@ import Sofa
 import Sofa.Core
 import Sofa.Simulation
 import csv
+import numpy as np
 
 #definizione costanti
 Straight_length_1 = 115
@@ -28,6 +29,9 @@ class KeyBoardController(Sofa.Core.Controller):
         self.ir_controller = kwargs.get('irController')
         self.rootNode = kwargs.get('rootNode')
         self.tube = 1    # ( 1 = TUBE_1, 2 = TUBE_2, 3 = TUBE_3 )
+        
+        self.print_interval = 1
+        self.last_print_time = 0.0
         
 	
     #IMPLEMENTAZIONE CONTROLLORE DA TASTIERA	
@@ -132,6 +136,22 @@ class KeyBoardController(Sofa.Core.Controller):
             writer.writerows(workspace_points)
 
         print(f"Workspace salvato in {filename}")
+        
+   
+        
+    def onAnimateEndEvent(self, event):
+         self.register_force_value()
+        
+    def register_force_value(self):
+        current_time = self.rootNode.time.value    
+        solver = self.rootNode.getObject("solver")
+        forces_vector = solver.constraintForces.value
+        if forces_vector is not None and forces_vector.size > 0 and current_time - self.last_print_time > self.print_interval:
+            force_value = np.linalg.norm(forces_vector)
+            print(f"-------FORZA RILEVATA------")
+            print(f"    Intensità della forza pari a: {force_value:.6f} N")
+            print("--------------------------\n")
+            self.last_print_time = current_time
 
 
 def createScene(rootNode):
@@ -143,34 +163,34 @@ def createScene(rootNode):
     rootNode.gravity = [0, 0, 0]
     rootNode.dt = 0.05
 
-    # import mesh superficiale ########################### DA RIVEDERE E COMMENTARE
+    # import mesh superficiale
 
     def get_mesh_path():
-    	return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mesh')
+    	return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mesh')		# definizione percorso mesh
     
     heart = rootNode.addChild('Heart')
-    heart.addObject('EulerImplicitSolver', rayleighStiffness="0.1", rayleighMass="0.1")
+    heart.addObject('EulerImplicitSolver', rayleighStiffness="0.1", rayleighMass="0.1")	# import solver
     heart.addObject('SparseLDLSolver')
     meshpath = get_mesh_path()
-    heart.addObject('MeshOBJLoader', name="heartLoader", filename=os.path.join(meshpath, 'heart.obj'), translation="0 -50 40", rotation="-45 180 0", scale="10")
-    heart.addObject('MeshGenerationFromPolyhedron', name="tetraGenerator", inputPoints="@heartLoader.position", inputTriangles="@heartLoader.triangles", inputQuads="@heartLoader.quads", drawTetras="0", facetSize="5", facetApproximation="1", cellRatio="2", cellSize="5")
-    heart.addObject('MechanicalObject', name="dofs", position="@tetraGenerator.outputPoints")
+    heart.addObject('MeshOBJLoader', name="heartLoader", filename=os.path.join(meshpath, 'heart.obj'), translation="0 -50 10", rotation="-45 180 0", scale="10")	# caricamento mesh di partenza
+    heart.addObject('MeshGenerationFromPolyhedron', name="tetraGenerator", inputPoints="@heartLoader.position", inputTriangles="@heartLoader.triangles", inputQuads="@heartLoader.quads", drawTetras="0", facetSize="5", facetApproximation="1", cellRatio="2", cellSize="5")	# creazione mesh volumetrica
+    heart.addObject('MechanicalObject', name="dofs", position="@tetraGenerator.outputPoints")	# geometria della mesh volumetrica
     heart.addObject('TetrahedronSetTopologyContainer', name="topo", tetrahedra="@tetraGenerator.outputTetras")
     heart.addObject('TetrahedronSetGeometryAlgorithms', template="Vec3d", name="GeomAlgo")
-    heart.addObject('ParallelTetrahedronFEMForceField', name="FEM", youngModulus="10e6", poissonRatio="0.45", method="large")
-    heart.addObject('UniformMass', name="mass", totalMass="500.0")
+    heart.addObject('ParallelTetrahedronFEMForceField', name="FEM", youngModulus="60e6", poissonRatio="0.45", method="large") # proprietà fisiche
+    heart.addObject('UniformMass', name="mass", totalMass="100.0")
     heart.addObject('LinearSolverConstraintCorrection')
-    heartVisu = heart.addChild('Visu')
+    heartVisu = heart.addChild('Visu')											      # proprietà visuali
     heartVisu.addObject('OglModel', name="Visual", src="@../heartLoader", color="0.7 0.3 0.1")
     heartVisu.addObject('BarycentricMapping', input="@..", output="@Visual")
-    heartCollis = heart.addChild('Collision')
+    heartCollis = heart.addChild('Collision')										      # collisioni
     heartCollis.addObject('MeshTopology', src="@../heartLoader")
     heartCollis.addObject('MechanicalObject')
     heartCollis.addObject('TriangleCollisionModel')
     heartCollis.addObject('LineCollisionModel')
     heartCollis.addObject('PointCollisionModel')
     heartCollis.addObject('BarycentricMapping', input="@..", output="@.")
-    constraintNode = heart.addChild('Constraints')
+    constraintNode = heart.addChild('Constraints')									      # vincoli di posizione per il cuore
     constraintNode.addObject('BoxROI', name="fixedBox", box="10 -1 0 50 60 90", drawBoxes="1", position="@../dofs.rest_position")
     constraintNode.addObject('FixedProjectiveConstraint', indices="@fixedBox.indices")
 
@@ -224,8 +244,8 @@ def createScene(rootNode):
 
     #   -sezioni e unione
 
-    TUBE_3.addObject('RodStraightSection', name='StraightSection', length = Straight_length_3, radius = Tube_radius_3, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_3.addObject('RodSpireSection', name='SpireSection', length = Curved_length_3, spireDiameter = 2*Radius_curvature_3, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_3.addObject('RodStraightSection', name='StraightSection', length = Straight_length_3, radius = Tube_radius_3, youngModulus=1e4, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_3.addObject('RodSpireSection', name='SpireSection', length = Curved_length_3, spireDiameter = 2*Radius_curvature_3, spireHeight=0.0, youngModulus=1e4, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
     TUBE_3.addObject('WireRestShape', template='Rigid3d', name='RestShape_3', wireMaterials='@StraightSection @SpireSection')
 
     #   -proprietà meccaniche
