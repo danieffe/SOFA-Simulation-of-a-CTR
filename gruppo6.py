@@ -13,7 +13,7 @@ Straight_length_3 = 175
 Curved_length_1 = 40
 Curved_length_2 = 50
 Curved_length_3 = 65
-Tube_radius_1 = 1
+Tube_radius_1 = 0.9
 Tube_radius_2 = 0.85
 Tube_radius_3 = 0.7
 Radius_curvature_1 = 105
@@ -202,7 +202,7 @@ def createScene(rootNode):
     rootNode.addObject('ParallelBruteForceBroadPhase')
     rootNode.addObject('ParallelBVHNarrowPhase')
     rootNode.addObject('CollisionResponse', name='response', response='FrictionContactConstraint')
-    rootNode.addObject('LocalMinDistance', name='proximity', alarmDistance='2', contactDistance='0.5', angleCone='0.0')
+    rootNode.addObject('LocalMinDistance', name='proximity', alarmDistance='2', contactDistance='0.01', angleCone='0.0')
 
     #TUBO 1
 
@@ -210,8 +210,8 @@ def createScene(rootNode):
 
     #   -sezioni e unione
 
-    TUBE_1.addObject('RodStraightSection', name='StraightSection', length = Straight_length_1, radius = Tube_radius_1, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_1.addObject('RodSpireSection', name='SpireSection', length = Curved_length_1, spireDiameter = 2*Radius_curvature_1, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_1.addObject('RodStraightSection', name='StraightSection', length = Straight_length_1, radius = Tube_radius_1, youngModulus=1.75e6, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_1.addObject('RodSpireSection', name='SpireSection', length = Curved_length_1, spireDiameter = 2*Radius_curvature_1, spireHeight=0.0, youngModulus=1.75e6, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
     TUBE_1.addObject('WireRestShape', template='Rigid3d', name='RestShape_1', wireMaterials='@StraightSection @SpireSection')
 
     #   -proprietà meccaniche
@@ -244,8 +244,8 @@ def createScene(rootNode):
 
     #   -sezioni e unione
 
-    TUBE_3.addObject('RodStraightSection', name='StraightSection', length = Straight_length_3, radius = Tube_radius_3, youngModulus=1e4, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
-    TUBE_3.addObject('RodSpireSection', name='SpireSection', length = Curved_length_3, spireDiameter = 2*Radius_curvature_3, spireHeight=0.0, youngModulus=1e4, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_3.addObject('RodStraightSection', name='StraightSection', length = Straight_length_3, radius = Tube_radius_3, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
+    TUBE_3.addObject('RodSpireSection', name='SpireSection', length = Curved_length_3, spireDiameter = 2*Radius_curvature_3, spireHeight=0.0, youngModulus=1e9, massDensity=1.55e-6, nbBeams=40, nbEdgesCollis=40, nbEdgesVisu=80)
     TUBE_3.addObject('WireRestShape', template='Rigid3d', name='RestShape_3', wireMaterials='@StraightSection @SpireSection')
 
     #   -proprietà meccaniche
@@ -280,8 +280,7 @@ def createScene(rootNode):
     collis.addObject('EdgeSetTopologyModifier', name='colliseEdgeModifier')
     collis.addObject('MechanicalObject', name='MechanicalObject', template='Vec3d')
     collis.addObject('MultiAdaptiveBeamMapping', controller='../IRController')
-    collis.addObject('LineCollisionModel')
-    collis.addObject('PointCollisionModel')
+    collis.addObject('SphereCollisionModel', name='SCM', radius=Tube_radius_1)
 
     #   -proprietà visuali 1
 
